@@ -1,5 +1,5 @@
 # encoding=utf8
-import sys, re
+import sys, re, csv, time
 reload(sys)
 sys.setdefaultencoding('utf8')
 
@@ -34,35 +34,71 @@ def get_attribute(obj, attr, href=None, func=None,recur=None):
 
 targets = []
 
-for i in range(1,10):
+for i in range(1,200):
     pagedict = {}
     r = urllib.urlopen('http://www.iwm.org.uk/memorials/item/memorial/'+str(i)).read()
     soup = BeautifulSoup(r, "html.parser")
+
+    pagedict['order'] = str(i)
 
     pagedict['pagetitle'] = clean(soup.find('div', attrs={'class': 'page-title'}).text)
 
     pagedict['gglurl'] =  get_attribute(soup.find('div', attrs={'class': 'wmamap_link'}), 'a', href=True)
 
-    reg21 = get_attribute(get_attribute(soup.find('div', attrs={'id': 'memorials-region2'}),'dl'),'find_all',func='dt')
+    if pagedict['pagetitle'] == 'Search UK War Memorials':
+        print "Dead page ;("
+    else:
+        reg21 = get_attribute(get_attribute(soup.find('div', attrs={'id': 'memorials-region2'}),'dl'),'find_all',func='dt')
 
-    reg21 = [u'reg2_' + dblspace(each).lower().replace(' ','_') for each in reg21 if reg21 != u'N/A']
+        reg21 = [u'reg2_' + dblspace(each).lower().replace(' ','_') for each in reg21 if reg21 != u'N/A']
 
-    reg22 = get_attribute(get_attribute(soup.find('div', attrs={'id': 'memorials-region2'}),'dl'),'find_all',func='dd')
+        reg22 = get_attribute(get_attribute(soup.find('div', attrs={'id': 'memorials-region2'}),'dl'),'find_all',func='dd')
 
-    reg22 = [dblspace(each) for each in reg22  if reg22 != u'N/A']
+        reg22 = [dblspace(each) for each in reg22  if reg22 != u'N/A']
 
-    pagedict.update({k: v for k, v in zip(reg21, reg22)})
+        pagedict.update({k: v for k, v in zip(reg21, reg22)})
 
-    reg31 = get_attribute(soup.find('div', attrs={'id': 'memorials-region3'}),'find_all',func='h5')
+        try:
+            subper = reg21.index('reg2_subject/period')
+            wars1 = getattr(get_attribute(soup.find('div', attrs={'id': 'memorials-region2'}),'dl'),'find_all')('dd')[subper]
+            wars2 = getattr(wars1,'find_all')('li')
+            pagedict.update({'reg2_subject/period_' + str(k+1): v for k, v in enumerate([dblspace(clean(each.text)) for each in wars2 ])})
+        except ValueError:
+            pass
 
-    reg31 = numdupl([u'reg3_' + dblspace(each).lower().replace(' ','_') for each in reg31 if reg31 != u'N/A'])
+        try:
+            creat = reg21.index('reg2_creator')
+            crt1 = getattr(get_attribute(soup.find('div', attrs={'id': 'memorials-region2'}),'dl'),'find_all')('dd')[creat]
+            crt2 = getattr(crt1,'find_all')('li')
+            pagedict.update({'reg2_creator_' + str(k+1): v for k, v in enumerate([dblspace(clean(each.text)) for each in crt2 ])})
+        except ValueError:
+            pass
 
-    reg32 = get_attribute(soup.find('div', attrs={'id': 'memorials-region3'}),'find_all', func='div', recur=False)
+        reg31 = get_attribute(soup.find('div', attrs={'id': 'memorials-region3'}),'find_all',func='h5')
 
-    reg32 = [dblspace(clean(get_attribute(get_attribute(each,'div'),'text'))) for each in reg32 if reg32 != u'N/A' ]
+        reg31 = numdupl([u'reg3_' + dblspace(each).lower().replace(' ','_') for each in reg31 if reg31 != u'N/A'])
 
-    pagedict.update({k: v for k, v in zip(reg31, reg32)})
+        reg32 = get_attribute(soup.find('div', attrs={'id': 'memorials-region3'}),'find_all', func='div', recur=False)
 
-    # print len(reg32)==len(reg31)
+        reg32 = [dblspace(clean(get_attribute(get_attribute(each,'div'),'text'))) for each in reg32 if reg32 != u'N/A' ]
 
-    pprint.pprint(pagedict)
+        pagedict.update({k: v for k, v in zip(reg31, reg32)})
+
+        pprint.pprint(pagedict)
+
+    targets.append(pagedict)
+
+    rt1 = random.randint(20,30)
+
+    print "sleeping for %i seconds" % rt1
+
+    time.sleep(rt1)
+
+with open('data2.csv', 'w') as csvfile:
+    fieldnames = sorted(set([k for d in targets for k in d.keys()]))
+    writer = csv.DictWriter(csvfile, fieldnames=fieldnames,restval='N/A')
+    writer.writeheader()
+    for eachitem in targets:
+        writer.writerow(eachitem)
+
+print "current task completed"
