@@ -13,10 +13,10 @@ def clean(text):
 
 filename = "data.txt"
 f = open(filename, 'a')
-headers = "order\treg2refnum\tpagetitle\tgglurl\treg2memtype\treg2lost\treg2town\treg2county\treg2district\treg2subper\treg2creat\treg2cer\treg3curloc\treg3descr\treg3inscr\treg3inscr_leg\treg3names\treg3names_url\treg3subj1\treg3subj2\treg3compt\treg3cer1\treg3cer2\treg3hist\treg3cost\treg3trust\treg3spons\treg3resp\treg3ref\n"
-f.write(headers)
+# headers = "order\treg2refnum\tpagetitle\tgglurl\treg2memtype\treg2lost\treg2town\treg2county\treg2district\treg2subper\treg2creat\treg2cer\treg3curloc\treg3descr\treg3inscr\treg3inscr_leg\treg3names\treg3names_url\treg3subj1\treg3subj2\treg3compt\treg3cer1\treg3cer2\treg3hist\treg3cost\treg3trust\treg3spons\treg3resp\treg3ref\n"
+# f.write(headers)
 
-for i in range(50,200):
+for i in range(162,200):
 
     r = urllib.urlopen('http://www.iwm.org.uk/memorials/item/memorial/'+str(i)).read()
     soup = BeautifulSoup(r, "html.parser")
