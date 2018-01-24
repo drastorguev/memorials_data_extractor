@@ -37,10 +37,10 @@ targets = []
 with open('wstargets1.csv') as f:
     reader = csv.reader(f)
 
-    for i in range(300,400):
+    for i in range(0,700):
         next(reader)
 
-    for i in range(400,500):
+    for i in range(700,791):
         currenttarget = next(reader)
         pagedict = {}
         r = urllib.urlopen('http://www.iwm.org.uk/memorials/item/memorial/'+currenttarget[0]).read()
@@ -104,7 +104,7 @@ with open('wstargets1.csv') as f:
 
         time.sleep(rt1)
 
-    with open('data3-wsonly-400.csv', 'w') as csvfile:
+    with open('data3-wsonly-700.csv', 'w') as csvfile:
         fieldnames = sorted(set([k for d in targets for k in d.keys()]))
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames,restval='N/A')
         writer.writeheader()
