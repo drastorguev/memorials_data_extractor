@@ -34,13 +34,13 @@ def get_attribute(obj, attr, href=None, func=None,recur=None):
 
 targets = []
 
-with open('stargets.csv') as f:
+with open('covtargets.csv') as f:
     reader = csv.reader(f)
 
     # for i in range(0,400):
     #     next(reader)
 
-    for i in range(0,84):
+    for i in range(0,50):
         currenttarget = next(reader)
         pagedict = {}
         r = urllib.urlopen('http://www.iwm.org.uk/memorials/item/memorial/'+currenttarget[0]).read()
@@ -55,21 +55,31 @@ with open('stargets.csv') as f:
         if pagedict['pagetitle'] == 'N/A':
             print "Dead page ;("
         else:
-            deth1 = get_attribute(get_attribute(soup.find('div', attrs={'class': 'details__content'}),'dl'),'find_all',func='dt')
+
+            preboth = soup.find_all('div', attrs={'class': 'details__content'})
+
+            deth0 = [get_attribute(get_attribute(eachdeth,'dl'),'find_all',func='dt') for eachdeth in preboth]
+
+            deth1 = [item for sublist in deth0 for item in sublist]
 
             deth2 = numdupl([dblspace(each).lower().replace(' ','_') for each in deth1 if deth1 != u'N/A'])
 
-            deti1 = get_attribute(get_attribute(soup.find('div', attrs={'class': 'details__content'}),'dl'),'find_all',func='dd')
+            deti0 = [get_attribute(get_attribute(eachdeti,'dl'),'find_all',func='dd') for eachdeti in preboth]
+
+            deti1 = [item for sublist in deti0 for item in sublist]
 
             deti2 = [dblspace(each) for each in deti1  if deti1 != u'N/A']
     #
             pagedict.update({k: v for k, v in zip(deth2, deti2)})
 
-            print pagedict
+            # print pagedict
     #
             try:
                 subper = deth2.index('commemoration')
-                wars1 = getattr(get_attribute(soup.find('div', attrs={'class': 'details__content'}),'dl'),'find_all')('dd')[subper]
+                wars0 = [getattr(get_attribute(eachprewar,'dl'),'find_all')('dd') for eachprewar in preboth]
+                wars1 = [item for sublist in wars0 for item in sublist][subper]
+                # print len(wars1)
+                # wars1 = getattr(get_attribute(soup.find('div', attrs={'class': 'details__content'}),'dl'),'find_all')('dd')[subper]
                 wars2 = getattr(wars1,'find_all')('a')
                 pagedict.update({'commemoration_' + str(k+1): v for k, v in enumerate([dblspace(clean(each.text)) for each in wars2 ])})
             except ValueError:
@@ -77,7 +87,9 @@ with open('stargets.csv') as f:
 
             try:
                 creat = deth2.index('maker')
-                crt1 = getattr(get_attribute(soup.find('div', attrs={'class': 'details__content'}),'dl'),'find_all')('dd')[creat]
+                crt0 = [getattr(get_attribute(eachprecrt,'dl'),'find_all')('dd') for eachprecrt in preboth]
+                crt1 = [item for sublist in crt0 for item in sublist][creat]
+                # crt1 = getattr(get_attribute(soup.find('div', attrs={'class': 'details__content'}),'dl'),'find_all')('dd')[creat]
                 crt2 = getattr(crt1,'find_all')('a')
                 pagedict.update({'maker_' + str(k+1): v for k, v in enumerate([dblspace(clean(each.text)) for each in crt2 ])})
             except ValueError:
@@ -85,7 +97,9 @@ with open('stargets.csv') as f:
 
             try:
                 comm = deth2.index('commemorations')
-                comm1 = getattr(get_attribute(soup.find('div', attrs={'class': 'details__content'}),'dl'),'find_all')('dd')[comm]
+                comm0 = [getattr(get_attribute(eachprecomm,'dl'),'find_all')('dd') for eachprecomm in preboth]
+                comm1 = [item for sublist in comm0 for item in sublist][comm]
+                # comm1 = getattr(get_attribute(soup.find('div', attrs={'class': 'details__content'}),'dl'),'find_all')('dd')[comm]
                 comm2 = getattr(comm1,'find_all')('li')
                 pagedict.update({'commemorations_' + str(k+1): v for k, v in enumerate([dblspace(clean(each.text)) for each in comm2 ])})
             except ValueError:
@@ -112,7 +126,7 @@ with open('stargets.csv') as f:
 
         time.sleep(rt1)
     #
-    with open('solihull-84.csv', 'w') as csvfile:
+    with open('Coventry-50.csv', 'w') as csvfile:
         fieldnames = sorted(set([k for d in targets for k in d.keys()]))
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames,restval='N/A')
         writer.writeheader()
